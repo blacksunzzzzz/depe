@@ -1,87 +1,16 @@
+<!DOCTYPE html>
+<html>
+<body style="background:black; color:white; text-align:center;">
+
+<h1>테스트</h1>
+
+<button onclick="test()">클릭</button>
+
 <script>
-let teamA = 0;
-let teamB = 0;
-
-const API_URL = "여기에_니_앱스스크립트_URL";
-
-// 불러오기
-function loadData() {
-  let date = document.getElementById("date").value;
-  if (!date) return;
-
-  fetch(API_URL + "?date=" + date)
-  .then(res => res.json())
-  .then(data => {
-    teamA = data.teamA || 0;
-    teamB = data.teamB || 0;
-    document.getElementById("total").value = data.total || 0;
-    render();
-  });
-}
-
-// 버튼
-function add(team, val) {
-  if(team == 'A') teamA += val;
-  if(team == 'B') teamB += val;
-
-  if(teamA < 0) teamA = 0;
-  if(teamB < 0) teamB = 0;
-
-  update();
-}
-
-// 화면
-function render() {
-  let total = parseInt(document.getElementById("total").value) || 0;
-  let done = teamA + teamB;
-
-  document.getElementById("teamA").innerText = teamA;
-  document.getElementById("teamB").innerText = teamB;
-  document.getElementById("done").innerText = done;
-
-  let percentA = total ? ((teamA / total) * 100).toFixed(1) : 0;
-  let percentB = total ? ((teamB / total) * 100).toFixed(1) : 0;
-  let totalPercent = total ? ((done / total) * 100).toFixed(1) : 0;
-
-  document.getElementById("percent").innerText =
-    "A: " + percentA + "% / B: " + percentB + "%";
-
-  document.getElementById("totalPercent").innerText = totalPercent + "%";
-  document.getElementById("remain").innerText = total - done;
-}
-
-// 저장
-function update() {
-  render();
-
-  let total = parseInt(document.getElementById("total").value) || 0;
-  let done = teamA + teamB;
-  let date = document.getElementById("date").value;
-
-  if (!date) return;
-
-  fetch(API_URL, {
-    method: "POST",
-    mode: "no-cors",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      date: date,
-      total: total,
-      teamA: teamA,
-      teamB: teamB,
-      percentA: ((teamA / total) * 100) || 0,
-      percentB: ((teamB / total) * 100) || 0,
-      totalPercent: ((done / total) * 100) || 0
-    })
-  });
-}
-
-// 시작
-window.onload = function() {
-  let today = new Date().toISOString().split('T')[0];
-  document.getElementById("date").value = today;
-  loadData();
+function test(){
+  alert("작동됨");
 }
 </script>
+
+</body>
+</html>
