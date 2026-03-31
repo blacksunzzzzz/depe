@@ -1,55 +1,10 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>수거관리</title>
-
-<style>
-body { background:#111; color:#fff; text-align:center; font-family:Arial; }
-input, button { font-size:18px; margin:8px; padding:10px; }
-.big { font-size:40px; }
-</style>
-</head>
-
-<body>
-
-<h2>수거관리</h2>
-
-날짜: <input type="date" id="date" onchange="loadData()"><br>
-총 건수: <input type="number" id="total" value="0" onchange="update()"><br>
-
-<h3>팀 A</h3>
-<div class="big" id="teamA">0</div>
-
-<h3>팀 B</h3>
-<div class="big" id="teamB">0</div>
-
-<h3>총 진행</h3>
-<div id="done"></div>
-
-<h3>퍼센트</h3>
-<div id="percent"></div>
-
-<h3>총 퍼센트</h3>
-<div id="totalPercent"></div>
-
-<h3>잔량</h3>
-<div id="remain"></div>
-
-<div style="margin-top:40px;">
-  <button onclick="add('A',1)">A +</button>
-  <button onclick="add('A',-1)">A -</button>
-  <button onclick="add('B',1)">B +</button>
-  <button onclick="add('B',-1)">B -</button>
-</div>
-
 <script>
 let teamA = 0;
 let teamB = 0;
 
-const API_URL = "https://script.google.com/macros/s/AKfycbxR0YY0Ua232nh3-j4iK9aAXH70L1Vp-AL2o7KBKskF-D22AFFJLbMYIjSjW_te9b0T/exec";
+const API_URL = "여기에_니_앱스스크립트_URL";
 
-// 🔹 데이터 불러오기
+// 불러오기
 function loadData() {
   let date = document.getElementById("date").value;
   if (!date) return;
@@ -60,12 +15,11 @@ function loadData() {
     teamA = data.teamA || 0;
     teamB = data.teamB || 0;
     document.getElementById("total").value = data.total || 0;
-    renderOnly();
-  })
-  .catch(err => console.log("불러오기 에러:", err));
+    render();
+  });
 }
 
-// 🔹 버튼
+// 버튼
 function add(team, val) {
   if(team == 'A') teamA += val;
   if(team == 'B') teamB += val;
@@ -76,14 +30,13 @@ function add(team, val) {
   update();
 }
 
-// 🔹 화면만 업데이트
-function renderOnly() {
-  document.getElementById("teamA").innerText = teamA;
-  document.getElementById("teamB").innerText = teamB;
-
+// 화면
+function render() {
   let total = parseInt(document.getElementById("total").value) || 0;
   let done = teamA + teamB;
 
+  document.getElementById("teamA").innerText = teamA;
+  document.getElementById("teamB").innerText = teamB;
   document.getElementById("done").innerText = done;
 
   let percentA = total ? ((teamA / total) * 100).toFixed(1) : 0;
@@ -97,57 +50,38 @@ function renderOnly() {
   document.getElementById("remain").innerText = total - done;
 }
 
-// 🔹 업데이트 + 저장
-let timer;
-
+// 저장
 function update() {
-  renderOnly();
+  render();
 
   let total = parseInt(document.getElementById("total").value) || 0;
   let done = teamA + teamB;
-
-  let percentA = total ? ((teamA / total) * 100).toFixed(1) : 0;
-  let percentB = total ? ((teamB / total) * 100).toFixed(1) : 0;
-  let totalPercent = total ? ((done / total) * 100).toFixed(1) : 0;
-
   let date = document.getElementById("date").value;
+
   if (!date) return;
 
-  clearTimeout(timer);
-
-  timer = setTimeout(() => {
-    fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        date: date,
-        total: document.getElementById("total").value,
-        teamA: teamA,
-        teamB: teamB,
-        percentA: percentA,
-        percentB: percentB,
-        totalPercent: totalPercent
-      })
+  fetch(API_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      date: date,
+      total: total,
+      teamA: teamA,
+      teamB: teamB,
+      percentA: ((teamA / total) * 100) || 0,
+      percentB: ((teamB / total) * 100) || 0,
+      totalPercent: ((done / total) * 100) || 0
     })
-    .then(res => res.text())
-    .then(r => console.log("저장됨:", r))
-    .catch(err => console.log("저장에러:", err));
-
-  }, 300);
+  });
 }
 
-// 🔹 처음 실행
+// 시작
 window.onload = function() {
   let today = new Date().toISOString().split('T')[0];
   document.getElementById("date").value = today;
-
-  setTimeout(() => {
-    loadData();
-  }, 100);
+  loadData();
 }
 </script>
-
-</body>
-</html>
