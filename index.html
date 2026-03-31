@@ -52,8 +52,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxR0YY0Ua232nh3-j4iK9aA
 // 🔹 데이터 불러오기
 function loadData() {
   let date = document.getElementById("date").value;
-
-  if (!date) return; // 🔥 핵심
+  if (!date) return;
 
   fetch(API_URL + "?date=" + date)
   .then(res => res.json())
@@ -62,7 +61,8 @@ function loadData() {
     teamB = data.teamB || 0;
     document.getElementById("total").value = data.total || 0;
     renderOnly();
-  });
+  })
+  .catch(err => console.log("불러오기 에러:", err));
 }
 
 // 🔹 버튼
@@ -76,7 +76,7 @@ function add(team, val) {
   update();
 }
 
-// 🔹 화면만
+// 🔹 화면만 업데이트
 function renderOnly() {
   document.getElementById("teamA").innerText = teamA;
   document.getElementById("teamB").innerText = teamB;
@@ -94,7 +94,6 @@ function renderOnly() {
     "A: " + percentA + "% / B: " + percentB + "%";
 
   document.getElementById("totalPercent").innerText = totalPercent + "%";
-
   document.getElementById("remain").innerText = total - done;
 }
 
@@ -112,7 +111,6 @@ function update() {
   let totalPercent = total ? ((done / total) * 100).toFixed(1) : 0;
 
   let date = document.getElementById("date").value;
-
   if (!date) return;
 
   clearTimeout(timer);
@@ -120,7 +118,6 @@ function update() {
   timer = setTimeout(() => {
     fetch(API_URL, {
       method: "POST",
-      mode: "no-cors",
       headers: {
         "Content-Type": "application/json"
       },
@@ -133,7 +130,11 @@ function update() {
         percentB: percentB,
         totalPercent: totalPercent
       })
-    });
+    })
+    .then(res => res.text())
+    .then(r => console.log("저장됨:", r))
+    .catch(err => console.log("저장에러:", err));
+
   }, 300);
 }
 
