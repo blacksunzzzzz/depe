@@ -1,14 +1,158 @@
 <!DOCTYPE html>
 <html>
-<body style="background:black; color:white; text-align:center;">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>수거관리</title>
 
-<h1>테스트</h1>
+<style>
+body { background:#111; color:#fff; text-align:center; font-family:Arial; }
+input, button { font-size:18px; margin:8px; padding:10px; }
+.big { font-size:40px; }
+</style>
+</head>
 
-<button onclick="test()">클릭</button>
+<body>
+
+<h2>수거관리</h2>
+
+날짜: <input type="date" id="date" onchange="loadData()"><br>
+총 건수: <input type="number" id="total" value="0" onchange="update()"><br>
+
+<h3>팀 A</h3>
+<div class="big" id="teamA">0</div>
+
+<h3>팀 B</h3>
+<div class="big" id="teamB">0</div>
+
+<h3>총 진행</h3>
+<div id="done"></div>
+
+<h3>퍼센트</h3>
+<div id="percent"></div>
+
+<h3>총 퍼센트</h3>
+<div id="totalPercent"></div>
+
+<h3>잔량</h3>
+<div id="remain"></div>
+
+<div style="margin-top:40px;">
+  <button onclick="add('A',1)">A +</button>
+  <button onclick="add('A',-1)">A -</button>
+  <button onclick="add('B',1)">B +</button>
+  <button onclick="add('B',-1)">B -</button>
+</div>
 
 <script>
-function test(){
-  alert("작동됨");
+let teamA = 0;
+let teamB = 0;
+
+const API_URL = "https://script.google.com/macros/s/AKfycbxR0YY0Ua232nh3-j4iK9aAXH70L1Vp-AL2o7KBKskF-D22AFFJLbMYIjSjW_te9b0T/exec";
+
+// 🔥 에러 방지
+window.onerror = function(msg){
+  console.log("에러:", msg);
+};
+
+// 🔹 데이터 불러오기
+function loadData() {
+  let date = document.getElementById("date").value;
+  if (!date) return;
+
+  fetch(API_URL + "?date=" + date)
+  .then(res => res.json())
+  .then(data => {
+    teamA = data.teamA || 0;
+    teamB = data.teamB || 0;
+    document.getElementById("total").value = data.total || 0;
+    render();
+  })
+  .catch(err => {
+    console.log("불러오기 실패:", err);
+  });
+}
+
+// 🔹 버튼
+function add(team, val) {
+  if(team == 'A') teamA += val;
+  if(team == 'B') teamB += val;
+
+  if(teamA < 0) teamA = 0;
+  if(teamB < 0) teamB = 0;
+
+  update();
+}
+
+// 🔹 화면
+function render() {
+  let total = parseInt(document.getElementById("total").value) || 0;
+  let done = teamA + teamB;
+
+  document.getElementById("teamA").innerText = teamA;
+  document.getElementById("teamB").innerText = teamB;
+  document.getElementById("done").innerText = done;
+
+  let percentA = total ? ((teamA / total) * 100).toFixed(1) : 0;
+  let percentB = total ? ((teamB / total) * 100).toFixed(1) : 0;
+  let totalPercent = total ? ((done / total) * 100).toFixed(1) : 0;
+
+  document.getElementById("percent").innerText =
+    "A: " + percentA + "% / B: " + percentB + "%";
+
+  document.getElementById("totalPercent").innerText = totalPercent + "%";
+  document.getElementById("remain").innerText = total - done;
+}
+
+// 🔹 저장
+let timer;
+
+function update() {
+  render();
+
+  let total = parseInt(document.getElementById("total").value) || 0;
+  let done = teamA + teamB;
+
+  let percentA = total ? ((teamA / total) * 100).toFixed(1) : 0;
+  let percentB = total ? ((teamB / total) * 100).toFixed(1) : 0;
+  let totalPercent = total ? ((done / total) * 100).toFixed(1) : 0;
+
+  let date = document.getElementById("date").value;
+  if (!date) return;
+
+  clearTimeout(timer);
+
+  timer = setTimeout(() => {
+
+    fetch(API_URL, {
+      method: "POST",
+      mode: "no-cors", // 🔥 중요
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        date: date,
+        total: total,
+        teamA: teamA,
+        teamB: teamB,
+        percentA: percentA,
+        percentB: percentB,
+        totalPercent: totalPercent
+      })
+    })
+    .then(() => console.log("저장 시도"))
+    .catch(err => console.log("저장 실패:", err));
+
+  }, 300);
+}
+
+// 🔹 시작
+window.onload = function() {
+  let today = new Date().toISOString().split('T')[0];
+  document.getElementById("date").value = today;
+
+  setTimeout(() => {
+    loadData();
+  }, 100);
 }
 </script>
 
